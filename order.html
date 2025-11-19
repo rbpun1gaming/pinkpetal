@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Order Confirmation</title>
+</head>
+<body style="font-family:Arial; padding:20px; background:#ffd6ea;">
+
+<h1>🎀 Order Confirmed 🎀</h1>
+
+<div id="order"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@2/dist/email.min.js"></script>
+<script>
+emailjs.init("YOUR_EMAILJS_PUBLIC_KEY");
+
+let order = JSON.parse(localStorage.getItem("order"));
+let cart = order.cart;
+
+document.getElementById("order").innerHTML = `
+  <h3>Thank you, ${order.name}!</h3>
+  <p>We will ship to: ${order.address}</p>
+  <p>Order details:</p>
+  ${cart.map(p=>`${p.name} - ₹${p.price}<br>`).join("")}
+`;
+
+emailjs.send("service_id", "template_id", {
+  name: order.name,
+  address: order.address,
+  email: order.email,
+  items: cart.map(p=>p.name).join(", ")
+});
+</script>
+</body>
+</html>

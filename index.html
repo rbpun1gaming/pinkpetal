@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>My Handmade Shop</title>
+<style>
+body{
+  font-family: Arial;
+  background: pink;
+  margin:0;
+  padding:0;
+}
+.header{
+  text-align:center;
+  padding:20px;
+  font-size:30px;
+  color:white;
+  text-shadow:0 0 10px #fff;
+}
+.products{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));
+  gap:15px;
+  padding:20px;
+}
+.product{
+  background:white;
+  padding:10px;
+  border-radius:15px;
+  box-shadow:0 0 10px #ff88cc;
+  text-align:center;
+}
+.product img{
+  width:100%;
+  border-radius:10px;
+}
+.cart-btn{
+  background:#ff44aa;
+  color:white;
+  padding:8px;
+  border:none;
+  border-radius:10px;
+}
+.glitter{
+  position:fixed;
+  width:5px;
+  height:5px;
+  background:white;
+  border-radius:50%;
+  animation: sparkle 2s infinite;
+}
+@keyframes sparkle{
+  0% {opacity:0;}
+  50% {opacity:1;}
+  100% {opacity:0;}
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">✨ My Handmade Shop ✨</div>
+
+<div id="product-list" class="products"></div>
+
+<h2 style="text-align:center">🛒 Your Cart</h2>
+<div id="cart"></div>
+
+<h2 style="text-align:center">📦 Checkout</h2>
+<div style="padding:20px;">
+<form id="checkout-form">
+  <input name="name" placeholder="Full Name" required><br><br>
+  <input name="address" placeholder="Address" required><br><br>
+  <input name="email" placeholder="Email" required><br><br>
+  <button type="submit" class="cart-btn">Place Order</button>
+</form>
+</div>
+
+<script>
+// glitter animation
+for(let i=0;i<40;i++){
+  let g=document.createElement("div");
+  g.className="glitter";
+  g.style.left=Math.random()*100+"vw";
+  g.style.top=Math.random()*100+"vh";
+  g.style.animationDelay=Math.random()*2+"s";
+  document.body.appendChild(g);
+}
+
+let products = JSON.parse(localStorage.getItem("products")) || [];
+
+// display products
+function renderProducts(){
+  let list=document.getElementById("product-list");
+  list.innerHTML="";
+  products.forEach((p,i)=>{
+    list.innerHTML+=`
+      <div class="product">
+        <img src="${p.img}">
+        <h3>${p.name}</h3>
+        <p>₹${p.price}</p>
+        <button class="cart-btn" onclick="addToCart(${i})">Add to cart</button>
+      </div>`;
+  })
+}
+renderProducts();
+
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+function addToCart(i){
+  cart.push(products[i]);
+  localStorage.setItem("cart", JSON.stringify(cart));
+  renderCart();
+}
+
+function renderCart(){
+  let c=document.getElementById("cart");
+  c.innerHTML="";
+  cart.forEach((p,i)=>{
+    c.innerHTML+=`${p.name} - ₹${p.price}<br>`;
+  });
+}
+renderCart();
+
+// checkout
+document.getElementById("checkout-form").onsubmit = (e)=>{
+  e.preventDefault();
+
+  let data = {
+    name: e.target.name.value,
+    address: e.target.address.value,
+    email: e.target.email.value,
+    cart: cart
+  };
+
+  localStorage.setItem("order", JSON.stringify(data));
+  window.location.href="order.html";
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Admin Panel</title>
+</head>
+<body style="font-family:Arial; padding:20px; background:#ffe0f0;">
+
+<h1>Admin – Add Products</h1>
+
+<form id="add-form">
+  <input name="name" placeholder="Product name"><br><br>
+  <input name="price" placeholder="Price"><br><br>
+  <input name="img" placeholder="Image URL"><br><br>
+  <button>Add</button>
+</form>
+
+<h2>Current Products</h2>
+<div id="list"></div>
+
+<script>
+let products = JSON.parse(localStorage.getItem("products")) || [];
+
+function save(){
+  localStorage.setItem("products", JSON.stringify(products));
+}
+
+function render(){
+  let l=document.getElementById("list");
+  l.innerHTML="";
+  products.forEach((p,i)=>{
+    l.innerHTML += `${p.name} - ₹${p.price} 
+    <button onclick="del(${i})">Delete</button><br>`;
+  });
+}
+render();
+
+document.getElementById("add-form").onsubmit=(e)=>{
+  e.preventDefault();
+  products.push({
+    name:e.target.name.value,
+    price:e.target.price.value,
+    img:e.target.img.value
+  });
+  save();
+  render();
+};
+
+function del(i){
+  products.splice(i,1);
+  save();
+  render();
+}
+</script>
+</body>
+</html>
