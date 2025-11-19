@@ -236,7 +236,7 @@ body{
       <input name="name" placeholder="Full Name" required>
       <input name="address" placeholder="Address" required>
       <input name="email" placeholder="Email" required>
-      <button type="submit" class="cart-btn" style="width:100%;">Place Order</button>
+      <button type="submit" class="cart-btn">Continue to Payment</button>
     </form>
   </div>
 
@@ -359,9 +359,10 @@ document.getElementById("checkout-form").onsubmit = (e)=>{
 
   localStorage.setItem("order", JSON.stringify(data));
   // in your project you used order.html
-  window.location.href="order.html";
+  window.location.href = "payment.html";
 };
 </script>
 
 </body>
 </html>
+
