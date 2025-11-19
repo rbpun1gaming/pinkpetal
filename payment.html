@@ -1,109 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8" />
 <title>Payment</title>
-
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap');
-
-body {
-  margin: 0;
-  padding: 0;
-  font-family: 'Poppins', sans-serif;
-  background: linear-gradient(180deg, #2d0f18, #6d2b3a);
-  color: #ffd6ea;
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-/* Payment box */
-.pay-box {
-  background: linear-gradient(180deg, rgba(0,0,0,0.45), rgba(0,0,0,0.6));
-  padding: 30px;
-  width: 90%;
-  max-width: 480px;
-  border-radius: 18px;
-  text-align: center;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.55);
-  border: 1px solid rgba(255,255,255,0.05);
-}
-
-.pay-box h1 {
-  font-size: 30px;
-  margin-bottom: 10px;
-  color: #ff8abf;
-  text-shadow: 0 0 15px rgba(255,90,151,0.4);
-}
-
-.order-items {
-  text-align: left;
-  background: rgba(255,255,255,0.03);
-  padding: 12px;
-  border-radius: 12px;
-  margin-top: 12px;
-  border: 1px solid rgba(255,255,255,0.05);
-}
-
-/* Buttons */
-.btn {
-  margin-top: 18px;
-  padding: 10px 18px;
-  background: linear-gradient(90deg, #ff8abf, #ff3ca6);
-  color: white;
-  font-weight: 600;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: 0.3s ease;
-  width: 100%;
-}
-
-.btn:hover {
-  transform: scale(1.05);
-}
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;600;700&display=swap');
+  :root { --bg1:#2d0f18; --bg2:#6d2b3a; --pink1:#ff8abf; --pink2:#ff3ca6; }
+  body{font-family:Poppins,Arial,sans-serif;margin:0;min-height:100vh;
+    background:linear-gradient(180deg,var(--bg1),var(--bg2));display:flex;align-items:center;justify-content:center;color:#ffd6ea;}
+  .card{width:90%;max-width:540px;background:rgba(0,0,0,0.5);padding:30px;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.6);text-align:center;border:1px solid rgba(255,255,255,0.03);}
+  h1{color:var(--pink1);text-shadow:0 6px 18px rgba(255,90,151,0.18);margin:0 0 12px;}
+  .meta{font-weight:600;margin:6px 0;color:#ffe8f3}
+  .order-items{margin-top:14px;text-align:left;background:rgba(255,255,255,0.02);padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);}
+  .order-items div{padding:8px 6px;border-radius:8px;background:rgba(255,255,255,0.01);margin-bottom:8px;display:flex;justify-content:space-between;}
+  .total{margin-top:12px;font-weight:700;font-size:1.1rem;color:#ffd6ea}
+  .btn{display:block;width:100%;padding:12px;border-radius:10px;border:none;margin-top:12px;background:linear-gradient(90deg,var(--pink1),var(--pink2));color:#fff;font-weight:700;cursor:pointer}
+  .btn:hover{transform:translateY(-3px)}
+  .small{font-size:0.9rem;color:#ffd6eaaa;margin-top:6px}
 </style>
-
 </head>
 <body>
+  <div class="card" role="main" aria-labelledby="paymentTitle">
+    <h1 id="paymentTitle">💳 Payment</h1>
 
-<div class="pay-box">
-  <h1>💳 Payment</h1>
+    <div id="customerMeta" class="meta">Loading...</div>
 
-  <div id="details"></div>
+    <h3 style="margin-top:16px;color:#ffd6ea">Order Details</h3>
+    <div id="items" class="order-items" aria-live="polite"></div>
 
-  <button class="btn" id="payNow">Pay Now</button>
+    <div id="total" class="total">Total: ₹0</div>
 
-  <button class="btn" onclick="window.location.href='index.html'" style="margin-top:10px;background:#ff629c">
-    Cancel & Return
-  </button>
-</div>
+    <button id="payNow" class="btn">Pay Now</button>
+    <button class="btn" style="background:#ff629c;margin-top:8px" id="cancel">Cancel & Return</button>
 
-<script>
-// load order data
-let order = JSON.parse(localStorage.getItem("order"));
-let cart = order.cart;
-
-// show summary
-document.getElementById("details").innerHTML = `
-  <h3>Customer: ${order.name}</h3>
-  <p>Address: ${order.address}</p>
-  
-  <h3>Order Details</h3>
-  <div class="order-items">
-    ${cart.map(p => `<div>${p.name} — ₹${p.price}</div>`).join("")}
+    <div class="small">Payments are simulated — integrate Razorpay to accept real payments.</div>
   </div>
 
-  <h3 style="margin-top:10px;">Total: ₹${cart.reduce((s,i)=>s+i.price,0)}</h3>
-`;
+<script>
+  // read order (saved from checkout)
+  const order = JSON.parse(localStorage.getItem('order') || 'null');
+  const cart = JSON.parse(localStorage.getItem('cart') || '[]');
 
-// payment button (dummy for now)
-document.getElementById("payNow").onclick = () => {
-  window.location.href = "order.html"; // after payment success
-}
+  // safety checks
+  if(!order || !cart || cart.length===0){
+    document.getElementById('customerMeta').textContent = 'No order found. Returning to shop...';
+    setTimeout(()=> location.href='index.html', 1500);
+  } else {
+    document.getElementById('customerMeta').textContent = `Customer: ${order.name} • ${order.email}`;
+    // render items
+    const itemsEl = document.getElementById('items');
+    itemsEl.innerHTML = '';
+    let total = 0;
+    cart.forEach(it => {
+      const price = Number(it.price) || 0;
+      const qty = Number(it.qty) || 1;
+      const line = price * qty;
+      total += line;
+      const row = document.createElement('div');
+      row.innerHTML = `<span style="font-weight:600">${it.name} <small style="font-weight:400">x${qty}</small></span><span>₹${line}</span>`;
+      itemsEl.appendChild(row);
+    });
+
+    document.getElementById('total').textContent = `Total: ₹${total}`;
+  }
+
+  // dummy Pay Now handler — replace with Razorpay integration
+  document.getElementById('payNow').addEventListener('click', ()=>{
+    // you can call Razorpay here. After success, go to order confirmation:
+    // window.location.href = 'order.html';
+    // For now simulate success:
+    alert('Payment simulated — redirecting to confirmation.');
+    // Optionally, attach paymentId to order object, save orders, etc.
+    window.location.href = 'order.html';
+  });
+
+  document.getElementById('cancel').addEventListener('click', ()=> location.href='index.html');
 </script>
-
 </body>
 </html>
