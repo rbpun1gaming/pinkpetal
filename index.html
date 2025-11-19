@@ -253,18 +253,7 @@ body {
 
 .checkout-box input::placeholder { color:#e6b9d0; }
 
-/* account modal legacy styles (kept for fallback) */
-.modal-flex { display:flex; align-items:center; justify-content:center; }
-.modal-card {
-  width:90%;
-  max-width:480px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-  padding:18px;
-  border-radius:12px;
-  color:#ffd6ea;
-}
-
-/* ---------- Styled Account Modal (new) ---------- */
+/* ---------- Styled Account Modal (kept) ---------- */
 .account-overlay{
   position:fixed; inset:0;
   display:flex; align-items:center; justify-content:center;
@@ -353,8 +342,34 @@ body {
 /* footer */
 .account-foot { margin-top:12px; font-size:0.85rem; opacity:0.9; color:#ffd6e0; text-align:center; }
 
+/* ========== CONTACT SECTION STYLES ========== */
+.contact-section {
+  margin-top:40px;
+  max-width:900px;
+  margin-left:auto;
+  margin-right:auto;
+  padding:28px;
+  border-radius:14px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.35));
+  border: 1px solid rgba(255,255,255,0.03);
+  box-shadow: 0 18px 40px rgba(0,0,0,0.5);
+  color:#ffd6ea;
+}
+.contact-grid { display:grid; grid-template-columns: 1fr 340px; gap:20px; align-items:start; }
+.contact-info h3 { color:var(--pink-2); margin-top:0; }
+.contact-form { display:flex; flex-direction:column; gap:10px; }
+.contact-form input, .contact-form textarea {
+  padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02); color:#ffd6ea; outline:none;
+}
+.contact-form textarea { min-height:140px; resize:vertical; }
+.contact-note { font-size:0.95rem; color:#ffd6e0; opacity:0.9; }
+.contact-actions { display:flex; gap:12px; align-items:center; margin-top:10px; }
+.contact-status { font-size:0.95rem; color:#ffd6e0; opacity:0.95; min-width:200px; }
+
 /* responsive */
 @media(max-width:880px){
+  .contact-grid { grid-template-columns:1fr; }
   .topbar { flex-direction:column; align-items:flex-start; gap:12px; }
   .divider { display:none; }
   .brand { font-size:28px; }
@@ -394,7 +409,7 @@ body {
   </div>
   <!-- END TOP BAR -->
 
-  <!-- ACCOUNT MODAL (REPLACED WITH STYLED VERSION) -->
+  <!-- ACCOUNT MODAL -->
   <div id="accountModal" class="account-overlay" aria-hidden="true" style="display:none;">
     <div class="account-card" role="dialog" aria-modal="true" aria-labelledby="accountTitle">
       <button class="account-close" id="closeAccountModal" aria-label="Close account panel">✕</button>
@@ -441,7 +456,6 @@ body {
       </footer>
     </div>
   </div>
-  <!-- END ACCOUNT MODAL -->
 
   <!-- Account Dashboard Modal -->
   <div id="accountDashboard" class="modal-flex" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;padding:20px;overflow:auto;">
@@ -491,12 +505,50 @@ body {
     </form>
   </div>
 
+  <!-- ========== CONTACT SECTION (Option C) ========== -->
+  <section class="contact-section" id="contactSection" aria-label="Contact us">
+    <div class="contact-grid">
+      <div class="contact-info">
+        <h3>Contact PinkPetal</h3>
+        <p class="contact-note">Have a question, custom order request, or feedback? Send us a message and we'll reply as soon as possible.</p>
+
+        <div style="margin-top:12px; padding:12px; border-radius:10px; background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005)); border:1px solid rgba(255,255,255,0.02)">
+          <div style="font-weight:700">Email</div>
+          <div style="margin-top:6px;color:#ffd6eacc">rbpun124@gmail.com</div>
+        </div>
+
+        <div style="margin-top:12px; color:#ffd6eacc; font-size:0.95rem">
+          <strong>Business hours:</strong>
+          <div style="margin-top:6px">Mon — Sat: 9:00 — 18:00</div>
+        </div>
+      </div>
+
+      <div>
+        <form id="contactFormBottom" class="contact-form" aria-label="Contact form">
+          <input name="name" placeholder="Your name" required>
+          <input name="email" type="email" placeholder="Your email" required>
+          <input name="subject" placeholder="Subject" required>
+          <textarea name="message" placeholder="Write your message here..." required></textarea>
+
+          <div class="contact-actions">
+            <button type="submit" class="btn">Send message</button>
+            <div id="contactStatusBottom" class="contact-status" role="status" aria-live="polite"></div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+  <!-- END CONTACT SECTION -->
+
 </div>
 
 <!-- subtle decorative dots -->
 <div style="position:fixed;inset:0;pointer-events:none;background-image:radial-gradient(rgba(0,0,0,0.35) 1px, transparent 1px);background-size: 60px 60px;opacity:0.12"></div>
 
-<!-- ACCOUNT JS: handles register/login, addresses, orders -->
+<!-- EmailJS library (optional) -->
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@2/dist/email.min.js"></script>
+
+<!-- ACCOUNT JS -->
 <script>
 /* ---------- Simple client-side account system ----------
    Storage:
@@ -617,7 +669,7 @@ showAccountBtn.addEventListener('click', ()=>{
   populateAccountDashboard();
   accountDashboard.style.display='flex';
 });
-closeAccountDash.addEventListener('click', ()=>{ accountDashboard.style.display='none'; });
+closeAccountDash.addEventListener('click', ()=>{ accountDashboard.style.display = 'none'; });
 
 // populate account dashboard
 function populateAccountDashboard(){
@@ -685,7 +737,6 @@ function useAddress(idx){
   if(!cur){ alert('Login first'); return; }
   const user = getUserObject(cur);
   const a = user.addresses[idx];
-  // fill checkout fields if present
   const nameField = document.querySelector('form#checkout-form input[name="name"]');
   const addressField = document.querySelector('form#checkout-form input[name="address"]');
   const phoneField = document.querySelector('form#checkout-form input[name="phone"]');
@@ -735,7 +786,6 @@ function prefillCheckout(){
    Small UX helper: tabs + focus
    --------------------------- */
 function setActiveTab(tabId){
-  // ensure DOM elements exist
   const tabEls = document.querySelectorAll('.tab');
   tabEls.forEach(t => t.classList.remove('is-active'));
   const btn = document.getElementById(tabId);
@@ -754,14 +804,11 @@ function setActiveTab(tabId){
   }
 }
 
-// When opening modal from Login button, set login tab active
 showLoginBtn.addEventListener('click', ()=>{ setActiveTab('tabLogin'); });
 
-// wire tab click visuals (already have behavior listeners, this only keeps visuals consistent)
 document.getElementById('tabLogin').addEventListener('click', ()=> setActiveTab('tabLogin'));
 document.getElementById('tabRegister').addEventListener('click', ()=> setActiveTab('tabRegister'));
 
-// run on load
 refreshAccountUI();
 prefillCheckout();
 
@@ -919,6 +966,81 @@ document.getElementById('checkout-form').onsubmit = (e) => {
   // redirect to payment page
   window.location.href = 'payment.html';
 };
+</script>
+
+<!-- CONTACT FORM JS (bottom section) -->
+<script>
+/*
+  Contact flow:
+  - If EMAILJS_SERVICE_ID / TEMPLATE_ID / PUBLIC_KEY are filled (not placeholders),
+    the form will send using EmailJS and deliver to rbpun124@gmail.com (pre-filled param).
+  - Otherwise the message is stored locally in localStorage under 'pp_contacts' so you don't lose messages.
+*/
+
+const CONTACT_EMAIL = "rbpun124@gmail.com"; // your provided email
+
+// ======= Inserted EmailJS credentials (from user) ========
+const EMAILJS_SERVICE_ID = "service_npylb3d";    // your service id
+const EMAILJS_TEMPLATE_ID = "template_2z3qz9a";  // your template id
+const EMAILJS_PUBLIC_KEY  = "YwTWDK2zdlv0oqPSj";   // your public key
+// ========================================================================================
+
+const contactForm = document.getElementById('contactFormBottom');
+const contactStatus = document.getElementById('contactStatusBottom');
+
+// attempt to init EmailJS if PUBLIC_KEY is provided (not placeholder)
+if(typeof emailjs !== 'undefined' && EMAILJS_PUBLIC_KEY){
+  try { emailjs.init(EMAILJS_PUBLIC_KEY); } catch(e){ console.warn('EmailJS init failed', e); }
+}
+
+function saveContactLocally(obj){
+  const existing = JSON.parse(localStorage.getItem('pp_contacts') || '[]');
+  existing.push(obj);
+  localStorage.setItem('pp_contacts', JSON.stringify(existing));
+}
+
+function setStatus(text, ok){
+  contactStatus.textContent = text;
+  contactStatus.style.color = ok ? '#c8ffd6' : '#ffd6e0';
+}
+
+contactForm.addEventListener('submit', function(e){
+  e.preventDefault();
+  setStatus('Sending…', true);
+
+  const form = new FormData(contactForm);
+  const payload = {
+    from_name: form.get('name'),
+    from_email: form.get('email'),
+    subject: form.get('subject'),
+    message: form.get('message'),
+    to_email: CONTACT_EMAIL
+  };
+
+  // If EmailJS is configured (service+template+public set correctly), send via EmailJS
+  const configured = EMAILJS_SERVICE_ID && EMAILJS_TEMPLATE_ID && EMAILJS_PUBLIC_KEY &&
+                     !EMAILJS_SERVICE_ID.includes('YOUR_') && !EMAILJS_TEMPLATE_ID.includes('YOUR_') &&
+                     !EMAILJS_PUBLIC_KEY.includes('YOUR_') && typeof emailjs !== 'undefined';
+
+  if(configured){
+    emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, payload)
+      .then(() => {
+        setStatus('Message sent — thanks! ❤️', true);
+        contactForm.reset();
+      })
+      .catch(err => {
+        console.error('EmailJS send error', err);
+        setStatus('Send failed — message saved locally.', false);
+        // fallback save locally
+        saveContactLocally(Object.assign({created: new Date().toISOString(), via: 'local-fallback'}, payload));
+      });
+  } else {
+    // Save locally until EmailJS is configured
+    saveContactLocally(Object.assign({created: new Date().toISOString(), via: 'local'}, payload));
+    setStatus('Message saved locally (EmailJS not configured).', true);
+    contactForm.reset();
+  }
+});
 </script>
 
 </body>
