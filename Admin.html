@@ -2,20 +2,71 @@
 <html>
 <head>
 <title>Admin Panel</title>
+
+<style>
+/* Center container */
+.admin-box {
+    max-width: 500px;
+    margin: 0 auto;           /* centers horizontally */
+    background: #ffb8d8;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 0 15px rgba(255, 60, 141, 0.3);
+}
+
+/* Inputs */
+.admin-box input {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    border-radius: 6px;
+    border: none;
+    outline: none;
+}
+
+/* Button */
+.admin-box button {
+    width: 100%;
+    padding: 10px;
+    background: #ff3ca6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.admin-box button:hover {
+    background: #ff168e;
+}
+
+/* Product list centered */
+#list {
+    margin-top: 20px;
+    padding: 10px;
+    background: #ffd6ea;
+    border-radius: 10px;
+}
+</style>
+
 </head>
 <body style="font-family:Arial; padding:20px; background:#ffe0f0;">
 
-<h1>Admin – Add Products</h1>
 
-<form id="add-form">
-  <input name="name" placeholder="Product name"><br><br>
-  <input name="price" placeholder="Price"><br><br>
-  <input name="img" placeholder="Image URL"><br><br>
-  <button>Add</button>
-</form>
+<div class="admin-box">
+    <h1 style="text-align:center;">Admin – Add Products</h1>
 
-<h2>Current Products</h2>
-<div id="list"></div>
+    <form id="add-form">
+      <input name="name" placeholder="Product name">
+      <input name="price" placeholder="Price">
+      <input name="img" placeholder="Image URL">
+      <button>Add</button>
+    </form>
+
+    <h2 style="text-align:center;">Current Products</h2>
+    <div id="list"></div>
+</div>
+
 
 <script>
 let products = JSON.parse(localStorage.getItem("products")) || [];
@@ -51,5 +102,6 @@ function del(i){
   render();
 }
 </script>
+
 </body>
 </html>
