@@ -32,24 +32,65 @@ body {
 .container {
   max-width: 980px;
   margin: 0 auto;
-  padding: 40px 16px 80px;
+  padding: 20px 16px 80px;
 }
 
-/* header */
-.header {
-  text-align: center;
-  font-size: 36px;
+/* === TOP BAR (NEW) === */
+.topbar {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 22px;
+  padding: 6px 10px;
+  gap: 20px;
+}
+
+.brand {
+  font-size: 32px;
   font-weight: 700;
   color: var(--pink-2);
-  margin-bottom: 8px;
   text-shadow: 0 6px 18px rgba(255,90,151,0.18);
   display:flex;
-  justify-content:center;
-  gap:12px;
   align-items:center;
+  gap:12px;
 }
 
-/* account buttons area */
+.divider {
+  width: 1px;
+  height: 44px;
+  background: rgba(255,255,255,0.12);
+  border-radius: 8px;
+  margin-left: 18px;
+}
+
+/* right side controls */
+.right-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.small-btn {
+  padding: 8px 12px;
+  font-size: 14px;
+  border-radius: 10px;
+}
+
+/* mini cart bubble */
+.cart-mini {
+  background: rgba(0,0,0,0.45);
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-weight: 600;
+  color: #ffd6ea;
+  border: 1px solid rgba(255,255,255,0.05);
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+/* account buttons area (fallback) */
 .account-row {
   display:flex;
   justify-content:center;
@@ -232,6 +273,11 @@ body {
 }
 
 /* responsive */
+@media(max-width:880px){
+  .topbar { flex-direction:column; align-items:flex-start; gap:12px; }
+  .divider { display:none; }
+  .brand { font-size:28px; }
+}
 @media(max-width:560px){
   .product img { height:130px; }
   .header { font-size:28px; }
@@ -244,14 +290,28 @@ body {
 
 <div class="container">
 
-  <div class="header">✨ <span style="color:var(--pink-2)">PinkPetal.store</span> ✨</div>
+  <!-- NEW TOP BAR: brand on left, divider, controls on right -->
+  <div class="topbar">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <div class="brand">✨ <span style="color:var(--pink-2)">PinkPetal.store</span> ✨</div>
+    </div>
 
-  <!-- ACCOUNT UI (added) -->
-  <div class="account-row">
-    <button id="showLoginBtn" class="btn">Login / Sign up</button>
-    <button id="showAccountBtn" class="btn" style="display:none;">My Account</button>
-    <button id="logoutBtn" class="btn tertiary" style="display:none;">Logout</button>
+    <div style="display:flex; align-items:center; gap:16px;">
+      <div class="divider" aria-hidden="true"></div>
+
+      <div class="right-controls" role="region" aria-label="Account and cart controls">
+        <button id="showLoginBtn" class="btn small-btn">Login / Sign up</button>
+        <button id="showAccountBtn" class="btn small-btn" style="display:none;">My Account</button>
+        <button id="logoutBtn" class="btn small-btn tertiary" style="display:none;">Logout</button>
+
+        <div class="cart-mini" title="Cart items">
+          <span style="font-size:16px;">🛒</span>
+          <span id="cartCountMini">0</span>
+        </div>
+      </div>
+    </div>
   </div>
+  <!-- END TOP BAR -->
 
   <!-- Login / Register Modal -->
   <div id="accountModal" class="modal-flex" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;">
@@ -310,7 +370,6 @@ body {
       </div>
     </div>
   </div>
-  <!-- END ACCOUNT UI -->
 
   <!-- PRODUCTS -->
   <div id="product-list" class="products" aria-live="polite"></div>
@@ -443,287 +502,4 @@ loginForm.addEventListener('submit', async (e)=>{
 // logout
 logoutBtn.addEventListener('click', ()=>{
   localStorage.removeItem('pp_current_user');
-  refreshAccountUI();
-  alert('Logged out');
-});
-
-// open dashboard
-showAccountBtn.addEventListener('click', ()=>{
-  populateAccountDashboard();
-  accountDashboard.style.display='flex';
-});
-closeAccountDash.addEventListener('click', ()=>{ accountDashboard.style.display='none'; });
-
-// populate account dashboard
-function populateAccountDashboard(){
-  const cur = getCurrentUser();
-  if(!cur) { alert('Not logged in'); return; }
-  const user = getUserObject(cur);
-  document.getElementById('profileSummary').innerHTML = `<div><strong>${user.username}</strong> • ${user.email}</div>`;
-  // addresses
-  const addrList = document.getElementById('addressList');
-  addrList.innerHTML = '';
-  if(user.addresses && user.addresses.length){
-    user.addresses.forEach((a, idx)=>{
-      const el = document.createElement('div');
-      el.style.padding='8px';
-      el.style.border='1px solid rgba(255,255,255,0.04)';
-      el.style.marginBottom='8px';
-      el.innerHTML = `<strong>${a.label}</strong><div style="font-size:0.95rem">${a.address}</div><div style="font-size:0.9rem;color:#ffd6eacc">Phone: ${a.phone}</div>
-        <div style="margin-top:6px;"><button class="btn" style="padding:6px 10px;margin-right:8px;" onclick="useAddress(${idx})">Use</button>
-        <button class="btn" style="padding:6px 10px;background:#ff88b8" onclick="deleteAddress(${idx})">Delete</button></div>`;
-      addrList.appendChild(el);
-    });
-  } else {
-    addrList.innerHTML = '<div style="color:#ffd6eacc">No addresses saved</div>';
-  }
-
-  // orders
-  const orders = user.orders || [];
-  const ol = document.getElementById('ordersList');
-  ol.innerHTML = '';
-  if(orders.length){
-    orders.slice().reverse().forEach(o=>{
-      const d = document.createElement('div');
-      d.style.padding='8px'; d.style.border='1px solid rgba(255,255,255,0.04)'; d.style.marginBottom='8px';
-      d.innerHTML = `<div style="font-weight:700">${o.id} • ₹${o.total}</div><div style="font-size:0.9rem">${o.name} • ${o.phone || ''}</div>
-        <div style="margin-top:6px;font-size:0.9rem">${o.items.map(it=>it.name+' x'+it.qty).join(', ')}</div>`;
-      ol.appendChild(d);
-    });
-  } else {
-    ol.innerHTML = '<div style="color:#ffd6eacc">No orders yet</div>';
-  }
-}
-
-// address form
-document.getElementById('addAddressForm').addEventListener('submit', (e)=>{
-  e.preventDefault();
-  const cur = getCurrentUser();
-  if(!cur){ alert('Login first'); return; }
-  const user = getUserObject(cur);
-  const label = e.target.label.value.trim();
-  const address = e.target.address.value.trim();
-  const phone = e.target.phone.value.trim();
-  if(!label||!address||!phone){ alert('Fill all fields'); return; }
-  user.addresses = user.addresses || [];
-  user.addresses.push({ label, address, phone });
-  const users = loadUsers().map(u => u.username === user.username ? user : u);
-  saveUsers(users);
-  e.target.reset();
-  populateAccountDashboard();
-  alert('Address saved');
-});
-
-// use address to fill checkout
-function useAddress(idx){
-  const cur = getCurrentUser();
-  if(!cur){ alert('Login first'); return; }
-  const user = getUserObject(cur);
-  const a = user.addresses[idx];
-  // fill checkout fields if present
-  const nameField = document.querySelector('form#checkout-form input[name="name"]');
-  const addressField = document.querySelector('form#checkout-form input[name="address"]');
-  const phoneField = document.querySelector('form#checkout-form input[name="phone"]');
-  if(nameField) nameField.value = user.username || '';
-  if(addressField) addressField.value = a.address || '';
-  if(phoneField) phoneField.value = a.phone || '';
-  accountDashboard.style.display='none';
-  alert('Address filled in checkout form');
-}
-
-// delete address
-function deleteAddress(idx){
-  const cur = getCurrentUser();
-  const user = getUserObject(cur);
-  user.addresses.splice(idx,1);
-  const users = loadUsers().map(u => u.username === user.username ? user : u);
-  saveUsers(users);
-  populateAccountDashboard();
-}
-
-// on successful order, attach to user orders (call this from order/payment success)
-function attachOrderToUser(orderObj){
-  const cur = getCurrentUser();
-  if(!cur) return;
-  const users = loadUsers();
-  const user = users.find(u => u.username === cur);
-  if(!user) return;
-  user.orders = user.orders || [];
-  user.orders.push(orderObj);
-  saveUsers(users);
-}
-
-// prefill checkout if logged in
-function prefillCheckout(){
-  const cur = getCurrentUser();
-  if(!cur) return;
-  const user = getUserObject(cur);
-  const nameField = document.querySelector('form#checkout-form input[name="name"]');
-  const addressField = document.querySelector('form#checkout-form input[name="address"]');
-  const emailField = document.querySelector('form#checkout-form input[name="email"]');
-  if(nameField) nameField.value = user.username || '';
-  if(emailField) emailField.value = user.email || '';
-  if(user.addresses && user.addresses.length && addressField) addressField.value = user.addresses[0].address || '';
-}
-
-// run on load
-refreshAccountUI();
-prefillCheckout();
-
-// expose for other pages
-window.pp_accounts = {
-  loadUsers, saveUsers, getCurrentUser, getUserObject, attachOrderToUser
-};
-</script>
-
-<!-- MAIN SITE JS (products, cart, checkout) -->
-<script>
-/* ========================
-   PRODUCTS + DEMO SEED
-   ======================== */
-let products = JSON.parse(localStorage.getItem("products")) || [];
-
-/* If you already manage products with admin, remove the demo seed block below.
-   This seed only activates if localStorage products is empty. */
-if(!products || products.length === 0) {
-  products = [
-    { id: "p1", name: "Rosy Heart Trinket", price: 299, img: "https://images.unsplash.com/photo-1545235617-9465b5a5f02f?q=80&w=800&auto=format&fit=crop" },
-    { id: "p2", name: "Pink Macrame", price: 499, img: "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?q=80&w=800&auto=format&fit=crop" },
-    { id: "p3", name: "Glitter Soap", price: 199, img: "https://images.unsplash.com/photo-1585238342022-2c0e6b0a1d8b?q=80&w=800&auto=format&fit=crop" }
-  ];
-  // Note: not saving automatically so admin can manage products later
-}
-
-/* ------------------------
-   Render products grid
-   ------------------------ */
-function renderProducts(){
-  const grid = document.getElementById('product-list');
-  grid.innerHTML = '';
-  products.forEach((p, i) => {
-    grid.innerHTML += `
-      <article class="product" role="article">
-        <img src="${p.img}" alt="${p.name}">
-        <h3>${p.name}</h3>
-        <p>₹${Number(p.price)}</p>
-        <button class="btn" onclick="addToCart(${i})" aria-label="Add ${p.name} to cart">Add to cart</button>
-      </article>
-    `;
-  });
-}
-renderProducts();
-
-/* =========================
-   CART (with + and −)
-   ========================= */
-let cart = JSON.parse(localStorage.getItem('cart')) || [];
-
-// Save cart helper
-function saveCart(){
-  localStorage.setItem('cart', JSON.stringify(cart));
-  renderCart();
-}
-
-// Add product to cart (increments qty if exists)
-function addToCart(index){
-  const p = products[index];
-  if(!p) return;
-  const id = p.id || ('prod_' + Math.random().toString(36).slice(2,9));
-  const price = Number(p.price) || 0;
-  const existing = cart.find(it => it.id === id);
-  if(existing){
-    existing.qty = (existing.qty || 1) + 1;
-  } else {
-    cart.push({ id, name: p.name, price, qty: 1, img: p.img });
-  }
-  saveCart();
-}
-
-// increase qty
-function increaseQty(i){
-  if(!cart[i]) return;
-  cart[i].qty = (cart[i].qty || 1) + 1;
-  saveCart();
-}
-
-// decrease qty
-function decreaseQty(i){
-  if(!cart[i]) return;
-  if(cart[i].qty > 1){
-    cart[i].qty--;
-  } else {
-    cart.splice(i,1);
-  }
-  saveCart();
-}
-
-// render cart content
-function renderCart(){
-  const container = document.getElementById('cart');
-  container.innerHTML = '';
-  if(!cart || cart.length === 0){
-    container.innerHTML = '<div style="padding:12px;text-align:center;color:#ffd6eacc">Your cart is empty</div>';
-    document.getElementById('cartCount').textContent = 0;
-    return;
-  }
-  let html = '<ul>';
-  cart.forEach((it, i) => {
-    const lineTotal = Number(it.price) * Number(it.qty);
-    html += `
-      <li>
-        <div class="item-left">
-          <img src="${it.img}" alt="${it.name}">
-          <div>
-            <div class="item-name">${it.name}</div>
-            <div class="item-price">₹${it.price} each</div>
-          </div>
-        </div>
-
-        <div style="display:flex;align-items:center;gap:12px;">
-          <div class="qty-controls" role="group" aria-label="Quantity controls">
-            <button class="qty-btn" onclick="decreaseQty(${i})" aria-label="Decrease quantity">−</button>
-            <div class="qty-display">${it.qty}</div>
-            <button class="qty-btn" onclick="increaseQty(${i})" aria-label="Increase quantity">+</button>
-          </div>
-
-          <div class="line-total">₹${lineTotal}</div>
-        </div>
-      </li>
-    `;
-  });
-  html += '</ul>';
-
-  const total = cart.reduce((s, it) => s + (Number(it.price) * Number(it.qty)), 0);
-  html += `<div class="cart-total">Total: ₹${total}</div>`;
-
-  container.innerHTML = html;
-  document.getElementById('cartCount').textContent = cart.reduce((s, it) => s + it.qty, 0);
-}
-
-// initial render
-renderCart();
-
-/* --------------------------
-   CHECKOUT: save order + go to payment
-   -------------------------- */
-document.getElementById('checkout-form').onsubmit = (e) => {
-  e.preventDefault();
-  if(cart.length === 0){
-    alert('Your cart is empty');
-    return;
-  }
-  const data = {
-    name: e.target.name.value.trim(),
-    address: e.target.address.value.trim(),
-    email: e.target.email.value.trim(),
-    phone: e.target.phone.value.trim(),
-    cart: cart
-  };
-  localStorage.setItem('order', JSON.stringify(data));
-  // redirect to payment page
-  window.location.href = 'payment.html';
-};
-</script>
-
-</body>
-</html>
+ 
