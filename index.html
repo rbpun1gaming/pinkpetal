@@ -41,12 +41,20 @@ body {
   font-size: 36px;
   font-weight: 700;
   color: var(--pink-2);
-  margin-bottom: 18px;
+  margin-bottom: 8px;
   text-shadow: 0 6px 18px rgba(255,90,151,0.18);
   display:flex;
   justify-content:center;
   gap:12px;
   align-items:center;
+}
+
+/* account buttons area */
+.account-row {
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  margin-bottom:18px;
 }
 
 /* products grid */
@@ -96,7 +104,14 @@ body {
   box-shadow: 0 10px 26px rgba(255,60,166,0.12);
   transition: transform .15s ease, box-shadow .15s ease;
 }
-.btn:hover { transform: translateY(-3px); box-shadow: 0 18px 36px rgba(255,60,166,0.18); }
+.btn.secondary {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.06);
+  color: #ffd6ea;
+}
+.btn.tertiary {
+  background: linear-gradient(90deg,#ff8abf,#ff629c);
+}
 
 /* cart section */
 .section-title {
@@ -205,6 +220,17 @@ body {
 
 .checkout-box input::placeholder { color:#e6b9d0; }
 
+/* account modal styles (simple override) */
+.modal-flex { display:flex; align-items:center; justify-content:center; }
+.modal-card {
+  width:90%;
+  max-width:480px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  padding:18px;
+  border-radius:12px;
+  color:#ffd6ea;
+}
+
 /* responsive */
 @media(max-width:560px){
   .product img { height:130px; }
@@ -219,6 +245,72 @@ body {
 <div class="container">
 
   <div class="header">✨ <span style="color:var(--pink-2)">PinkPetal.store</span> ✨</div>
+
+  <!-- ACCOUNT UI (added) -->
+  <div class="account-row">
+    <button id="showLoginBtn" class="btn">Login / Sign up</button>
+    <button id="showAccountBtn" class="btn" style="display:none;">My Account</button>
+    <button id="logoutBtn" class="btn tertiary" style="display:none;">Logout</button>
+  </div>
+
+  <!-- Login / Register Modal -->
+  <div id="accountModal" class="modal-flex" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="accountTitle">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <h3 id="accountTitle" style="margin:0">Account</h3>
+        <button id="closeAccountModal" style="background:transparent;border:none;color:#ffd6ea;font-size:18px;">✕</button>
+      </div>
+
+      <div id="authSection" style="margin-top:12px;">
+        <div style="display:flex;gap:8px;margin-bottom:12px;">
+          <button id="tabLogin" class="btn secondary">Login</button>
+          <button id="tabRegister" class="btn secondary">Register</button>
+        </div>
+
+        <form id="loginForm" style="display:block;">
+          <input name="email" placeholder="Email" required>
+          <input name="password" type="password" placeholder="Password" required>
+          <button class="btn" style="width:100%;">Login</button>
+        </form>
+
+        <form id="registerForm" style="display:none;">
+          <input name="username" placeholder="Username" required>
+          <input name="email" placeholder="Email" required>
+          <input name="password" type="password" placeholder="Password" required>
+          <button class="btn" style="width:100%;">Create account</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Account Dashboard Modal -->
+  <div id="accountDashboard" class="modal-flex" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;padding:20px;overflow:auto;">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="dashTitle" style="max-width:720px;max-height:90vh;overflow:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <h3 id="dashTitle" style="margin:0">My Account</h3>
+        <button id="closeAccountDash" style="background:transparent;border:none;color:#ffd6ea;font-size:18px;">✕</button>
+      </div>
+
+      <div style="margin-top:12px;">
+        <h4>Profile</h4>
+        <div id="profileSummary" style="margin-bottom:12px;"></div>
+
+        <h4>Saved Addresses</h4>
+        <div id="addressList" style="margin-bottom:12px;"></div>
+
+        <form id="addAddressForm" style="margin-bottom:12px;">
+          <input name="label" placeholder="Label (Home / Work)" required>
+          <textarea name="address" placeholder="Full address" required style="width:100%;padding:8px;margin:6px 0;border-radius:6px;"></textarea>
+          <input name="phone" placeholder="Phone" required>
+          <button class="btn" style="width:100%;">Save address</button>
+        </form>
+
+        <h4>My Orders</h4>
+        <div id="ordersList" style="margin-bottom:12px;"></div>
+      </div>
+    </div>
+  </div>
+  <!-- END ACCOUNT UI -->
 
   <!-- PRODUCTS -->
   <div id="product-list" class="products" aria-live="polite"></div>
@@ -235,6 +327,7 @@ body {
       <input name="name" placeholder="Full Name" required>
       <input name="address" placeholder="Address" required>
       <input name="email" placeholder="Email" required>
+      <input name="phone" placeholder="Phone (optional)">
       <button type="submit" class="btn" style="width:100%;">Continue to Payment</button>
     </form>
   </div>
@@ -244,6 +337,246 @@ body {
 <!-- subtle decorative dots -->
 <div style="position:fixed;inset:0;pointer-events:none;background-image:radial-gradient(rgba(0,0,0,0.35) 1px, transparent 1px);background-size: 60px 60px;opacity:0.12"></div>
 
+<!-- ACCOUNT JS: handles register/login, addresses, orders -->
+<script>
+/* ---------- Simple client-side account system ----------
+   Storage:
+     pp_users -> array [{username,email,hash,addresses:[],orders:[]}]
+     pp_current_user -> username (string)
+   Note: Uses SHA-256 in-browser hashing. Not a replacement for server-side auth.
+*/
+
+// small helper: SHA-256 hex
+async function sha256hex(str){
+  const enc = new TextEncoder();
+  const data = enc.encode(str);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  const bytes = new Uint8Array(hash);
+  return Array.from(bytes).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// storage helpers
+function loadUsers(){ return JSON.parse(localStorage.getItem('pp_users')||'[]'); }
+function saveUsers(users){ localStorage.setItem('pp_users', JSON.stringify(users)); }
+function setCurrentUser(username){ localStorage.setItem('pp_current_user', username); }
+function getCurrentUser(){ return localStorage.getItem('pp_current_user') || null; }
+function getUserObject(username){
+  const u = loadUsers().find(x => x.username === username || x.email === username);
+  return u || null;
+}
+
+// UI elements
+const showLoginBtn = document.getElementById('showLoginBtn');
+const showAccountBtn = document.getElementById('showAccountBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+const accountModal = document.getElementById('accountModal');
+const accountDashboard = document.getElementById('accountDashboard');
+
+const tabLogin = document.getElementById('tabLogin');
+const tabRegister = document.getElementById('tabRegister');
+const loginForm = document.getElementById('loginForm');
+const registerForm = document.getElementById('registerForm');
+const closeAccountModal = document.getElementById('closeAccountModal');
+const closeAccountDash = document.getElementById('closeAccountDash');
+
+function refreshAccountUI(){
+  const cur = getCurrentUser();
+  if(cur){
+    showLoginBtn.style.display = 'none';
+    showAccountBtn.style.display = '';
+    logoutBtn.style.display = '';
+    showAccountBtn.textContent = 'My Account';
+  } else {
+    showLoginBtn.style.display = '';
+    showAccountBtn.style.display = 'none';
+    logoutBtn.style.display = 'none';
+  }
+}
+
+// open account modal
+showLoginBtn.addEventListener('click', ()=>{ accountModal.style.display='flex'; loginForm.style.display='block'; registerForm.style.display='none'; });
+closeAccountModal.addEventListener('click', ()=>{ accountModal.style.display='none'; });
+
+// tabs
+tabLogin.addEventListener('click', ()=>{ loginForm.style.display='block'; registerForm.style.display='none'; });
+tabRegister.addEventListener('click', ()=>{ loginForm.style.display='none'; registerForm.style.display='block'; });
+
+// register
+registerForm.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const username = registerForm.username.value.trim();
+  const email = registerForm.email.value.trim().toLowerCase();
+  const password = registerForm.password.value;
+  if(!username || !email || !password){ alert('Please fill all fields'); return; }
+
+  let users = loadUsers();
+  if(users.find(u=>u.email===email || u.username===username)){ alert('User/email already exists'); return; }
+  const hash = await sha256hex(password);
+  const newUser = { username, email, hash, addresses: [], orders: [] };
+  users.push(newUser);
+  saveUsers(users);
+  setCurrentUser(username);
+  accountModal.style.display='none';
+  refreshAccountUI();
+  alert('Account created and logged in as ' + username);
+  prefillCheckout();
+});
+
+// login
+loginForm.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const email = loginForm.email.value.trim().toLowerCase();
+  const password = loginForm.password.value;
+  if(!email || !password){ alert('Please fill all fields'); return; }
+  const users = loadUsers();
+  const user = users.find(u=>u.email===email || u.username===email);
+  if(!user){ alert('No user found'); return; }
+  const hash = await sha256hex(password);
+  if(hash !== user.hash){ alert('Wrong password'); return; }
+  setCurrentUser(user.username);
+  accountModal.style.display='none';
+  refreshAccountUI();
+  alert('Logged in as ' + user.username);
+  prefillCheckout();
+});
+
+// logout
+logoutBtn.addEventListener('click', ()=>{
+  localStorage.removeItem('pp_current_user');
+  refreshAccountUI();
+  alert('Logged out');
+});
+
+// open dashboard
+showAccountBtn.addEventListener('click', ()=>{
+  populateAccountDashboard();
+  accountDashboard.style.display='flex';
+});
+closeAccountDash.addEventListener('click', ()=>{ accountDashboard.style.display='none'; });
+
+// populate account dashboard
+function populateAccountDashboard(){
+  const cur = getCurrentUser();
+  if(!cur) { alert('Not logged in'); return; }
+  const user = getUserObject(cur);
+  document.getElementById('profileSummary').innerHTML = `<div><strong>${user.username}</strong> • ${user.email}</div>`;
+  // addresses
+  const addrList = document.getElementById('addressList');
+  addrList.innerHTML = '';
+  if(user.addresses && user.addresses.length){
+    user.addresses.forEach((a, idx)=>{
+      const el = document.createElement('div');
+      el.style.padding='8px';
+      el.style.border='1px solid rgba(255,255,255,0.04)';
+      el.style.marginBottom='8px';
+      el.innerHTML = `<strong>${a.label}</strong><div style="font-size:0.95rem">${a.address}</div><div style="font-size:0.9rem;color:#ffd6eacc">Phone: ${a.phone}</div>
+        <div style="margin-top:6px;"><button class="btn" style="padding:6px 10px;margin-right:8px;" onclick="useAddress(${idx})">Use</button>
+        <button class="btn" style="padding:6px 10px;background:#ff88b8" onclick="deleteAddress(${idx})">Delete</button></div>`;
+      addrList.appendChild(el);
+    });
+  } else {
+    addrList.innerHTML = '<div style="color:#ffd6eacc">No addresses saved</div>';
+  }
+
+  // orders
+  const orders = user.orders || [];
+  const ol = document.getElementById('ordersList');
+  ol.innerHTML = '';
+  if(orders.length){
+    orders.slice().reverse().forEach(o=>{
+      const d = document.createElement('div');
+      d.style.padding='8px'; d.style.border='1px solid rgba(255,255,255,0.04)'; d.style.marginBottom='8px';
+      d.innerHTML = `<div style="font-weight:700">${o.id} • ₹${o.total}</div><div style="font-size:0.9rem">${o.name} • ${o.phone || ''}</div>
+        <div style="margin-top:6px;font-size:0.9rem">${o.items.map(it=>it.name+' x'+it.qty).join(', ')}</div>`;
+      ol.appendChild(d);
+    });
+  } else {
+    ol.innerHTML = '<div style="color:#ffd6eacc">No orders yet</div>';
+  }
+}
+
+// address form
+document.getElementById('addAddressForm').addEventListener('submit', (e)=>{
+  e.preventDefault();
+  const cur = getCurrentUser();
+  if(!cur){ alert('Login first'); return; }
+  const user = getUserObject(cur);
+  const label = e.target.label.value.trim();
+  const address = e.target.address.value.trim();
+  const phone = e.target.phone.value.trim();
+  if(!label||!address||!phone){ alert('Fill all fields'); return; }
+  user.addresses = user.addresses || [];
+  user.addresses.push({ label, address, phone });
+  const users = loadUsers().map(u => u.username === user.username ? user : u);
+  saveUsers(users);
+  e.target.reset();
+  populateAccountDashboard();
+  alert('Address saved');
+});
+
+// use address to fill checkout
+function useAddress(idx){
+  const cur = getCurrentUser();
+  if(!cur){ alert('Login first'); return; }
+  const user = getUserObject(cur);
+  const a = user.addresses[idx];
+  // fill checkout fields if present
+  const nameField = document.querySelector('form#checkout-form input[name="name"]');
+  const addressField = document.querySelector('form#checkout-form input[name="address"]');
+  const phoneField = document.querySelector('form#checkout-form input[name="phone"]');
+  if(nameField) nameField.value = user.username || '';
+  if(addressField) addressField.value = a.address || '';
+  if(phoneField) phoneField.value = a.phone || '';
+  accountDashboard.style.display='none';
+  alert('Address filled in checkout form');
+}
+
+// delete address
+function deleteAddress(idx){
+  const cur = getCurrentUser();
+  const user = getUserObject(cur);
+  user.addresses.splice(idx,1);
+  const users = loadUsers().map(u => u.username === user.username ? user : u);
+  saveUsers(users);
+  populateAccountDashboard();
+}
+
+// on successful order, attach to user orders (call this from order/payment success)
+function attachOrderToUser(orderObj){
+  const cur = getCurrentUser();
+  if(!cur) return;
+  const users = loadUsers();
+  const user = users.find(u => u.username === cur);
+  if(!user) return;
+  user.orders = user.orders || [];
+  user.orders.push(orderObj);
+  saveUsers(users);
+}
+
+// prefill checkout if logged in
+function prefillCheckout(){
+  const cur = getCurrentUser();
+  if(!cur) return;
+  const user = getUserObject(cur);
+  const nameField = document.querySelector('form#checkout-form input[name="name"]');
+  const addressField = document.querySelector('form#checkout-form input[name="address"]');
+  const emailField = document.querySelector('form#checkout-form input[name="email"]');
+  if(nameField) nameField.value = user.username || '';
+  if(emailField) emailField.value = user.email || '';
+  if(user.addresses && user.addresses.length && addressField) addressField.value = user.addresses[0].address || '';
+}
+
+// run on load
+refreshAccountUI();
+prefillCheckout();
+
+// expose for other pages
+window.pp_accounts = {
+  loadUsers, saveUsers, getCurrentUser, getUserObject, attachOrderToUser
+};
+</script>
+
+<!-- MAIN SITE JS (products, cart, checkout) -->
 <script>
 /* ========================
    PRODUCTS + DEMO SEED
@@ -383,6 +716,7 @@ document.getElementById('checkout-form').onsubmit = (e) => {
     name: e.target.name.value.trim(),
     address: e.target.address.value.trim(),
     email: e.target.email.value.trim(),
+    phone: e.target.phone.value.trim(),
     cart: cart
   };
   localStorage.setItem('order', JSON.stringify(data));
@@ -393,6 +727,3 @@ document.getElementById('checkout-form').onsubmit = (e) => {
 
 </body>
 </html>
-
-
-
