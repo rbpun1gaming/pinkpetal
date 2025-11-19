@@ -3,82 +3,142 @@
 <head>
 <meta charset="UTF-8">
 <title>My Handmade Shop</title>
+
 <style>
+/* ----------- GLOBAL AESTHETIC STYLE ----------- */
 body{
-  font-family: Arial;
-  background: pink;
+  font-family: "Poppins", Arial, sans-serif;
+  background: linear-gradient(180deg, #ffe4f2, #ffbcd9);
   margin:0;
   padding:0;
+  overflow-x:hidden;
 }
+
+/* Center container */
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Header */
 .header{
   text-align:center;
-  padding:20px;
-  font-size:30px;
-  color:white;
-  text-shadow:0 0 10px #fff;
+  padding:25px;
+  font-size:40px;
+  font-weight:700;
+  color:#ff3ca6;
+  text-shadow:0 0 20px rgba(255, 90, 151, 0.6);
 }
+
+/* Products grid */
 .products{
   display:grid;
-  grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));
-  gap:15px;
-  padding:20px;
+  grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));
+  gap:25px;
+  padding:20px 0;
 }
+
+/* Product card aesthetic */
 .product{
   background:white;
-  padding:10px;
-  border-radius:15px;
-  box-shadow:0 0 10px #ff88cc;
+  padding:15px;
+  border-radius:20px;
+  box-shadow:0 10px 20px rgba(255, 0, 115, 0.15);
   text-align:center;
+  transition:0.3s ease;
 }
+
+.product:hover{
+  transform:scale(1.05);
+  box-shadow:0 15px 30px rgba(255, 0, 115, 0.25);
+}
+
 .product img{
   width:100%;
-  border-radius:10px;
+  border-radius:15px;
+  margin-bottom:10px;
 }
+
+/* Buttons */
 .cart-btn{
-  background:#ff44aa;
+  background:#ff3ca6;
   color:white;
-  padding:8px;
+  padding:10px 16px;
   border:none;
-  border-radius:10px;
+  border-radius:8px;
+  cursor:pointer;
+  transition:0.3s ease;
 }
+
+.cart-btn:hover{
+  background:#ff1588;
+  transform:scale(1.05);
+}
+
+/* Cart + Checkout titles */
+.section-title{
+  text-align:center;
+  font-size:28px;
+  margin-top:40px;
+  color:#d1006e;
+  font-weight:600;
+}
+
+/* Cart box */
+#cart{
+  background:white;
+  padding:15px;
+  margin:20px auto;
+  border-radius:12px;
+  max-width:400px;
+  text-align:center;
+  box-shadow:0 5px 15px rgba(255,0,115,0.2);
+}
+
+/* Checkout form */
+.checkout-box{
+  max-width:400px;
+  margin:0 auto;
+  background:white;
+  padding:20px;
+  border-radius:15px;
+  box-shadow:0 5px 15px rgba(255,0,115,0.2);
+}
+
+.checkout-box input{
+  width:100%;
+  padding:12px;
+  margin:10px 0;
+  border-radius:8px;
+  border:1px solid #ff89c6;
+  outline:none;
+}
+
+/* Glitter effect */
 .glitter{
   position:fixed;
-  width:5px;
-  height:5px;
+  width:6px;
+  height:6px;
   background:white;
   border-radius:50%;
   animation: sparkle 2s infinite;
+  pointer-events:none;
 }
+
 @keyframes sparkle{
   0% {opacity:0;}
   50% {opacity:1;}
   100% {opacity:0;}
 }
 </style>
-</head>
 
+</head>
 <body>
 
-<div class="header">✨ My Handmade Shop ✨</div>
-
-<div id="product-list" class="products"></div>
-
-<h2 style="text-align:center">🛒 Your Cart</h2>
-<div id="cart"></div>
-
-<h2 style="text-align:center">📦 Checkout</h2>
-<div style="padding:20px;">
-<form id="checkout-form">
-  <input name="name" placeholder="Full Name" required><br><br>
-  <input name="address" placeholder="Address" required><br><br>
-  <input name="email" placeholder="Email" required><br><br>
-  <button type="submit" class="cart-btn">Place Order</button>
-</form>
-</div>
-
+<!-- Glitter animation -->
 <script>
-// glitter animation
-for(let i=0;i<40;i++){
+for(let i=0;i<50;i++){
   let g=document.createElement("div");
   g.className="glitter";
   g.style.left=Math.random()*100+"vw";
@@ -86,10 +146,40 @@ for(let i=0;i<40;i++){
   g.style.animationDelay=Math.random()*2+"s";
   document.body.appendChild(g);
 }
+</script>
+
+<div class="container">
+
+  <div class="header">✨ My Handmade Shop ✨</div>
+
+  <!-- PRODUCT GRID -->
+  <div id="product-list" class="products"></div>
+
+  <!-- CART -->
+  <h2 class="section-title">🛒 Your Cart</h2>
+  <div id="cart"></div>
+
+  <!-- CHECKOUT -->
+  <h2 class="section-title">📦 Checkout</h2>
+
+  <div class="checkout-box">
+    <form id="checkout-form">
+      <input name="name" placeholder="Full Name" required>
+      <input name="address" placeholder="Address" required>
+      <input name="email" placeholder="Email" required>
+      <button type="submit" class="cart-btn">Place Order</button>
+    </form>
+  </div>
+
+</div>
+
+
+<!-- JS Logic -->
+<script>
 
 let products = JSON.parse(localStorage.getItem("products")) || [];
 
-// display products
+// Display products
 function renderProducts(){
   let list=document.getElementById("product-list");
   list.innerHTML="";
@@ -122,7 +212,7 @@ function renderCart(){
 }
 renderCart();
 
-// checkout
+// Checkout submit
 document.getElementById("checkout-form").onsubmit = (e)=>{
   e.preventDefault();
 
@@ -137,5 +227,6 @@ document.getElementById("checkout-form").onsubmit = (e)=>{
   window.location.href="order.html";
 };
 </script>
+
 </body>
 </html>
