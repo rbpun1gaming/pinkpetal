@@ -1,106 +1,366 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Admin Panel</title>
-
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>PinkPetal.store — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
 <style>
-/* Center container */
-.admin-box {
-    max-width: 500px;
-    margin: 0 auto;           /* centers horizontally */
-    background: #ffb8d8;
-    padding: 25px;
-    border-radius: 12px;
-    box-shadow: 0 0 15px rgba(255, 60, 141, 0.3);
-}
+  :root{
+    --bg1:#2d0f18;
+    --bg2:#6d2b3a;
+    --pink-2:#ff8abf;
+    --pink-3:#ff3ca6;
+    --card: rgba(255,255,255,0.03);
+    --muted: rgba(255,214,234,0.12);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:'Poppins',system-ui,Arial;
+    background: linear-gradient(180deg,var(--bg1),var(--bg2));
+    color:#ffd6ea;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1100px;margin:28px auto;padding:18px}
+  h1{margin:0 0 18px;font-size:26px;color:var(--pink-2)}
+  .grid{display:grid;grid-template-columns:1fr 420px;gap:20px}
+  .card{
+    background: linear-gradient(180deg, rgba(0,0,0,0.45), rgba(0,0,0,0.55));
+    padding:16px;border-radius:12px;border:1px solid rgba(255,255,255,0.03);
+    box-shadow:0 14px 36px rgba(0,0,0,0.6);
+  }
+  label{display:block;font-size:0.9rem;margin-bottom:6px;color:#ffd6ea}
+  input[type="text"], input[type="number"]{
+    width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.02); color:#ffd6ea; margin-bottom:10px;
+  }
+  .btn{display:inline-block;padding:8px 12px;border-radius:8px;border:none;background:linear-gradient(90deg,var(--pink-2),var(--pink-3));color:#fff;font-weight:700;cursor:pointer}
+  .btn.danger{background:transparent;border:1px solid rgba(255,255,255,0.06);color:#ffd6ea}
+  .small{padding:6px 8px;font-size:0.9rem}
+  .products-list{margin-top:12px}
+  .product-row{display:flex;align-items:center;justify-content:space-between;padding:8px;border-radius:8px;margin-bottom:8px;background:rgba(255,255,255,0.01);border:1px solid rgba(255,255,255,0.02)}
+  .product-row img{width:64px;height:46px;object-fit:cover;border-radius:6px;margin-right:10px}
+  .product-meta{flex:1}
+  .muted{color:#ffd6eacc;font-size:0.95rem}
 
-/* Inputs */
-.admin-box input {
-    width: 100%;
-    padding: 10px;
-    margin: 8px 0;
-    border-radius: 6px;
-    border: none;
-    outline: none;
-}
+/* USERS PANEL */
+  .users-card{display:flex;flex-direction:column;height:100%}
+  .users-list{overflow:auto;max-height:420px;padding:6px}
+  .user-row{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:8px;margin-bottom:8px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));border:1px solid rgba(255,255,255,0.02);cursor:pointer}
+  .user-row:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(0,0,0,0.45)}
+  .user-left{display:flex;align-items:center;gap:10px}
+  .avatar{width:44px;height:44px;border-radius:8px;background:linear-gradient(90deg,#ff8abf,#ff3ca6);display:flex;align-items:center;justify-content:center;font-weight:800;color:#25010a}
+  .user-meta{font-weight:700}
+  .user-email{font-size:0.85rem;color:#ffd6eacc}
 
-/* Button */
-.admin-box button {
-    width: 100%;
-    padding: 10px;
-    background: #ff3ca6;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 16px;
-}
+/* detail panel */
+  .detail{margin-top:10px;background:rgba(255,255,255,0.02);padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.03)}
+  .detail h4{margin:6px 0 8px;color:var(--pink-2)}
+  .addr, .order{padding:8px;margin-bottom:8px;border-radius:8px;background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.02)}
+  .no-data{opacity:0.85;color:#ffd6eacc;font-size:0.95rem}
 
-.admin-box button:hover {
-    background: #ff168e;
-}
-
-/* Product list centered */
-#list {
-    margin-top: 20px;
-    padding: 10px;
-    background: #ffd6ea;
-    border-radius: 10px;
-}
+/* responsive */
+  @media(max-width:980px){
+    .grid{grid-template-columns:1fr; }
+  }
 </style>
-
 </head>
-<body style="font-family:Arial; padding:20px; background:#ffe0f0;">
+<body>
 
+  <div class="wrap">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <h1>Admin — PinkPetal.store</h1>
+      <div>
+        <button id="refreshBtn" class="btn small">Refresh</button>
+      </div>
+    </div>
 
-<div class="admin-box">
-    <h1 style="text-align:center;">Admin – Add Products</h1>
+    <div class="grid">
+      <!-- LEFT: Product Add / Current Products -->
+      <div>
+        <div class="card">
+          <h3 style="margin-top:0">Add / Edit Product</h3>
+          <label>Product name</label>
+          <input id="pname" type="text" placeholder="e.g. Pink Macrame" />
+          <label>Price (₹)</label>
+          <input id="pprice" type="number" placeholder="e.g. 499" />
+          <label>Image URL</label>
+          <input id="pimg" type="text" placeholder="https://..." />
+          <div style="display:flex;gap:8px">
+            <button id="addProduct" class="btn">Add Product</button>
+            <button id="saveProducts" class="btn danger">Save to storage</button>
+            <button id="clearProducts" class="btn danger small">Clear all</button>
+          </div>
 
-    <form id="add-form">
-      <input name="name" placeholder="Product name">
-      <input name="price" placeholder="Price">
-      <input name="img" placeholder="Image URL">
-      <button>Add</button>
-    </form>
+          <div class="products-list" id="productsList"></div>
+        </div>
 
-    <h2 style="text-align:center;">Current Products</h2>
-    <div id="list"></div>
-</div>
+        <!-- Users management note -->
+        <div class="card" style="margin-top:16px">
+          <h3 style="margin-top:0">Notes</h3>
+          <p class="muted">This admin is client-side (localStorage). It shows users created via the account system on the site. To manage users across devices use a backend (Firebase / server).</p>
+        </div>
+      </div>
 
+      <!-- RIGHT: Users panel -->
+      <aside>
+        <div class="card users-card">
+          <h3 style="margin:0 0 12px">Users</h3>
+
+          <div style="display:flex;gap:8px;margin-bottom:12px">
+            <input id="filterUser" type="text" placeholder="Search by username or email" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);color:#ffd6ea"/>
+            <button id="importBtn" class="btn small">Import sample</button>
+            <button id="clearUsersBtn" class="btn small btn-danger" style="background:transparent;border:1px solid rgba(255,255,255,0.06)">Delete all</button>
+          </div>
+
+          <div class="users-list" id="usersList">
+            <!-- populated by JS -->
+          </div>
+
+          <div id="userDetail" class="card" style="margin-top:12px;display:none">
+            <h4 id="detailName"></h4>
+            <div id="detailEmail" class="muted"></div>
+
+            <div style="margin-top:12px">
+              <h4>Saved addresses</h4>
+              <div id="detailAddresses" class="detail"></div>
+            </div>
+
+            <div style="margin-top:12px">
+              <h4>Orders</h4>
+              <div id="detailOrders" class="detail"></div>
+            </div>
+
+            <div style="margin-top:12px;display:flex;gap:8px">
+              <button id="deleteUserBtn" class="btn danger small">Delete user</button>
+              <button id="closeDetailBtn" class="btn small">Close</button>
+            </div>
+          </div>
+
+        </div>
+      </aside>
+    </div>
+  </div>
 
 <script>
-let products = JSON.parse(localStorage.getItem("products")) || [];
+/* Admin page JS
+   - products stored in localStorage key "products"
+   - users stored in localStorage key "pp_users"
+*/
 
-function save(){
-  localStorage.setItem("products", JSON.stringify(products));
+// ------------------ PRODUCTS ------------------
+let products = JSON.parse(localStorage.getItem('products')||'[]');
+
+const productsList = document.getElementById('productsList');
+const pname = document.getElementById('pname');
+const pprice = document.getElementById('pprice');
+const pimg = document.getElementById('pimg');
+const addProductBtn = document.getElementById('addProduct');
+const saveProductsBtn = document.getElementById('saveProducts');
+const clearProductsBtn = document.getElementById('clearProducts');
+
+function renderProducts(){
+  productsList.innerHTML = products.map((p, i) => `
+    <div class="product-row" data-index="${i}">
+      <div style="display:flex;align-items:center">
+        <img src="${p.img}" alt="${p.name}" onerror="this.style.opacity=0.6">
+        <div class="product-meta">
+          <div style="font-weight:700">${p.name}</div>
+          <div class="muted">₹${p.price}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn small" onclick="editProduct(${i})">Edit</button>
+        <button class="btn small" onclick="deleteProduct(${i})" style="background:transparent;border:1px solid rgba(255,255,255,0.06)">Remove</button>
+      </div>
+    </div>
+  `).join('');
 }
+renderProducts();
 
-function render(){
-  let l=document.getElementById("list");
-  l.innerHTML="";
-  products.forEach((p,i)=>{
-    l.innerHTML += `${p.name} - ₹${p.price} 
-    <button onclick="del(${i})">Delete</button><br>`;
-  });
-}
-render();
-
-document.getElementById("add-form").onsubmit=(e)=>{
-  e.preventDefault();
-  products.push({
-    name:e.target.name.value,
-    price:e.target.price.value,
-    img:e.target.img.value
-  });
-  save();
-  render();
+addProductBtn.onclick = ()=>{
+  const name = pname.value.trim();
+  const price = Number(pprice.value) || 0;
+  const img = pimg.value.trim() || '';
+  if(!name || price<=0){ alert('Enter name and valid price'); return; }
+  products.push({ id: 'p'+Date.now(), name, price, img });
+  renderProducts();
+  pname.value=''; pprice.value=''; pimg.value='';
 };
 
-function del(i){
+saveProductsBtn.onclick = ()=>{
+  localStorage.setItem('products', JSON.stringify(products));
+  alert('Products saved to localStorage');
+};
+
+clearProductsBtn.onclick = ()=>{
+  if(!confirm('Clear all products?')) return;
+  products = [];
+  localStorage.removeItem('products');
+  renderProducts();
+};
+
+// edit/delete helpers
+function editProduct(i){
+  const p = products[i];
+  pname.value = p.name; pprice.value = p.price; pimg.value = p.img;
+  // remove the product so admin can re-add via Add
   products.splice(i,1);
-  save();
-  render();
+  renderProducts();
 }
+function deleteProduct(i){
+  if(!confirm('Remove this product?')) return;
+  products.splice(i,1);
+  localStorage.setItem('products', JSON.stringify(products));
+  renderProducts();
+}
+
+// ------------------ USERS PANEL ------------------
+const usersListEl = document.getElementById('usersList');
+const userDetail = document.getElementById('userDetail');
+const detailName = document.getElementById('detailName');
+const detailEmail = document.getElementById('detailEmail');
+const detailAddresses = document.getElementById('detailAddresses');
+const detailOrders = document.getElementById('detailOrders');
+const deleteUserBtn = document.getElementById('deleteUserBtn');
+const closeDetailBtn = document.getElementById('closeDetailBtn');
+const filterUser = document.getElementById('filterUser');
+const importBtn = document.getElementById('importBtn');
+const clearUsersBtn = document.getElementById('clearUsersBtn');
+const refreshBtn = document.getElementById('refreshBtn');
+
+function loadUsers(){
+  return JSON.parse(localStorage.getItem('pp_users')||'[]');
+}
+function saveUsers(u){ localStorage.setItem('pp_users', JSON.stringify(u)); }
+
+let users = loadUsers();
+let selectedUserIndex = null;
+
+function renderUsers(filter=''){
+  users = loadUsers();
+  const f = filter.trim().toLowerCase();
+  if(!users || users.length===0){
+    usersListEl.innerHTML = '<div class="no-data" style="padding:14px">No users yet. Users will appear here after they register on the site.</div>';
+    return;
+  }
+  const rows = users.map((u, i) => ({u,i})).filter(x=>{
+    if(!f) return true;
+    return (x.u.username && x.u.username.toLowerCase().includes(f)) || (x.u.email && x.u.email.toLowerCase().includes(f));
+  }).map(({u,i}) => {
+    const initials = (u.username || u.email || '').slice(0,2).toUpperCase();
+    return `
+      <div class="user-row" data-idx="${i}">
+        <div class="user-left">
+          <div class="avatar">${initials}</div>
+          <div>
+            <div class="user-meta">${u.username || '(no name)'}</div>
+            <div class="user-email">${u.email || ''}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn small" onclick="viewUser(${i})">View</button>
+          <button class="btn small" onclick="deleteUser(${i})" style="background:transparent;border:1px solid rgba(255,255,255,0.06)">Delete</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+  usersListEl.innerHTML = rows || '<div class="no-data" style="padding:14px">No users found for that search.</div>';
+}
+
+// view and delete (with confirmation)
+function viewUser(i){
+  const u = users[i];
+  if(!u) return;
+  selectedUserIndex = i;
+  detailName.textContent = u.username || '(no name)';
+  detailEmail.textContent = u.email || '';
+  // addresses
+  detailAddresses.innerHTML = '';
+  if(u.addresses && u.addresses.length){
+    u.addresses.forEach(a=>{
+      const el = document.createElement('div');
+      el.className = 'addr';
+      el.innerHTML = `<div style="font-weight:700">${a.label || 'Address'}</div><div style="margin-top:6px">${a.address}</div><div style="margin-top:6px;color:#ffd6eacc">Phone: ${a.phone || ''}</div>`;
+      detailAddresses.appendChild(el);
+    });
+  } else {
+    detailAddresses.innerHTML = '<div class="no-data">No saved addresses</div>';
+  }
+  // orders
+  detailOrders.innerHTML = '';
+  if(u.orders && u.orders.length){
+    u.orders.slice().reverse().forEach(o=>{
+      const el = document.createElement('div');
+      el.className = 'order';
+      el.innerHTML = `<div style="font-weight:700">${o.id} • ₹${o.total}</div>
+        <div style="margin-top:6px">${o.items.map(it=>it.name+' ×'+it.qty).join(', ')}</div>
+        <div style="margin-top:8px;color:#ffd6eacc">${o.address || ''}</div>`;
+      detailOrders.appendChild(el);
+    });
+  } else {
+    detailOrders.innerHTML = '<div class="no-data">No orders yet</div>';
+  }
+
+  userDetail.style.display = 'block';
+  userDetail.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+function deleteUser(i){
+  const u = users[i];
+  if(!u) return;
+  if(!confirm('Delete user ' + (u.username || u.email) + '? This cannot be undone.')) return;
+  users.splice(i,1);
+  saveUsers(users);
+  renderUsers(filterUser.value || '');
+  userDetail.style.display = 'none';
+}
+
+// delete currently selected
+deleteUserBtn.addEventListener('click', ()=>{
+  if(selectedUserIndex === null) return;
+  if(!confirm('Delete selected user?')) return;
+  deleteUser(selectedUserIndex);
+  selectedUserIndex = null;
+  userDetail.style.display = 'none';
+});
+closeDetailBtn.addEventListener('click', ()=>{ userDetail.style.display='none'; selectedUserIndex=null; });
+
+// filter
+filterUser.addEventListener('input', ()=> renderUsers(filterUser.value || ''));
+
+// import a couple of sample users (for demo)
+importBtn.addEventListener('click', ()=>{
+  const sample = [
+    { username:'punya', email:'punya@example.com', hash:'demo', addresses:[{label:'Home',address:'123 Main St',phone:'9999999999'}], orders:[]},
+    { username:'alex', email:'alex@example.com', hash:'demo', addresses:[], orders:[]}
+  ];
+  const existing = loadUsers();
+  const merged = existing.concat(sample);
+  saveUsers(merged);
+  renderUsers();
+  alert('Imported sample users. Refresh admin to see them.');
+});
+
+// clear all users
+clearUsersBtn.addEventListener('click', ()=>{
+  if(!confirm('Delete ALL users from localStorage?')) return;
+  localStorage.removeItem('pp_users');
+  renderUsers();
+});
+
+// refresh
+refreshBtn.addEventListener('click', ()=> location.reload());
+
+// initial render
+renderUsers();
+
+// expose helper on window for other pages if needed
+window.adminHelpers = {
+  renderUsers, loadUsers, saveUsers
+};
 </script>
 
 </body>
