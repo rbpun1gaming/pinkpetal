@@ -11,7 +11,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/emailjs-com@2/dist/email.min.js"></script>
 <script>
-emailjs.init("YOUR_EMAILJS_PUBLIC_KEY");
+emailjs.init("YwTWDK2zdlv0oqPSj");
 
 let order = JSON.parse(localStorage.getItem("order"));
 let cart = order.cart;
@@ -23,7 +23,7 @@ document.getElementById("order").innerHTML = `
   ${cart.map(p=>`${p.name} - ₹${p.price}<br>`).join("")}
 `;
 
-emailjs.send("service_id", "template_id", {
+emailjs.send("service_npylb3d", "template_2z3qz9a", {
   name: order.name,
   address: order.address,
   email: order.email,
@@ -32,3 +32,4 @@ emailjs.send("service_id", "template_id", {
 </script>
 </body>
 </html>
+
