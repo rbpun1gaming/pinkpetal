@@ -1,35 +1,124 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
 <title>Order Confirmation</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap');
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(180deg, #2d0f18, #6d2b3a);
+  color: #ffd6ea;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Center card */
+.confirm-box {
+  background: linear-gradient(180deg, rgba(0,0,0,0.45), rgba(0,0,0,0.6));
+  padding: 30px;
+  width: 90%;
+  max-width: 480px;
+  border-radius: 18px;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.55);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.confirm-box h1 {
+  font-size: 30px;
+  margin-bottom: 10px;
+  color: #ff8abf;
+  text-shadow: 0 0 15px rgba(255,90,151,0.4);
+}
+
+.confirm-box h3 {
+  font-weight: 600;
+  color: #ffd6ea;
+  margin-bottom: 6px;
+}
+
+.confirm-box p {
+  font-size: 0.95rem;
+  color: #ffd6eacc;
+  margin: 5px 0 10px;
+}
+
+/* Order list box */
+.order-items {
+  text-align: left;
+  background: rgba(255,255,255,0.03);
+  padding: 12px;
+  border-radius: 12px;
+  margin-top: 12px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.back-btn {
+  margin-top: 18px;
+  padding: 10px 18px;
+  background: linear-gradient(90deg, #ff8abf, #ff3ca6);
+  color: white;
+  font-weight: 600;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.back-btn:hover {
+  transform: scale(1.05);
+}
+</style>
+
 </head>
-<body style="font-family:Arial; padding:20px; background:#ffd6ea;">
+<body>
 
-<h1>🎀 Order Confirmed 🎀</h1>
+<div class="confirm-box">
+  <h1>🎀 Order Confirmed 🎀</h1>
 
-<div id="order"></div>
+  <div id="order"></div>
 
+  <button class="back-btn" onclick="window.location.href='index.html'">
+    Back to Shop
+  </button>
+</div>
+
+<!-- EmailJS -->
 <script src="https://cdn.jsdelivr.net/npm/emailjs-com@2/dist/email.min.js"></script>
+
 <script>
 emailjs.init("YwTWDK2zdlv0oqPSj");
 
 let order = JSON.parse(localStorage.getItem("order"));
 let cart = order.cart;
 
+// Build the card HTML
 document.getElementById("order").innerHTML = `
   <h3>Thank you, ${order.name}!</h3>
-  <p>We will ship to: ${order.address}</p>
-  <p>Order details:</p>
-  ${cart.map(p=>`${p.name} - ₹${p.price}<br>`).join("")}
+  <p>We will ship your order to:</p>
+  <p><strong>${order.address}</strong></p>
+
+  <p>Your order:</p>
+  <div class="order-items">
+    ${cart.map(p => `<div>${p.name} — ₹${p.price}</div>`).join("")}
+  </div>
 `;
 
+// Email Notification
 emailjs.send("service_npylb3d", "template_2z3qz9a", {
   name: order.name,
   address: order.address,
   email: order.email,
-  items: cart.map(p=>p.name).join(", ")
+  items: cart.map(p => p.name).join(", ")
 });
 </script>
+
 </body>
 </html>
-
